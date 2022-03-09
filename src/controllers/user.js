@@ -1,19 +1,15 @@
 // Import db connection and QueryTypes from sequelize
-const db = require("../database/connection")
-const { QueryTypes } = require("sequelize")
+const {user, profile} = require('../../models')
 
 // Function addUsers for insert user data to database
 exports.addUsers = async (req, res) => {
     try {
-        const { email, password, fullName, role } = req.body
-        const query = `INSERT INTO users (email,password,fullName,role) VALUES ('${email}','${password}','${fullName}','${role}')`
-
-        await db.sequelize.query(query)
+       
+        await user.create(req.body)
 
         res.send({
             status: "You created your account",
             message: "Add user finished",
-            data : {user:{email}},
         })
     } catch (error) {
         console.log(error)
@@ -27,12 +23,12 @@ exports.addUsers = async (req, res) => {
 // Function getUsers for get all user data from database
 exports.getUsers = async (req, res) => {
     try {
-        const query = "SELECT * FROM users"
-        const select = await db.sequelize.query(query, { type: QueryTypes.SELECT })
+      
+        const users = await user.findAll()
 
         res.send({
             status: "success",
-            data :{ users : select} ,
+            data :{ users} ,
         })
     } catch (error) {
         console.log(error)
@@ -46,20 +42,20 @@ exports.getUsers = async (req, res) => {
 // Function getUser for get one user data from database
 exports.postUser = async (req, res) => {
     try {
-        const { email, password } = req.body
 
-        const data = await db.sequelize.query(
-            `SELECT email FROM users WHERE email = '${email}' AND password = '${password}' `,
-            { type: QueryTypes.SELECT }
-        )
-        
-        if (data == ""){
-            throw Error
-        }
+       const {email,password} = req.body
+       const dataUser = await user.findOne({ 
+        where: {
+        email, 
+        password,
+         }, attributes: {
+            exclude: ["id","fullName", "createdAt", "updatedAt"],
+          }})
+
         
         res.send({
             status: "Login Success",
-            data : {user:{email}},
+            data : {dataUser},
         })
     } catch (error) {
         console.log(error)
@@ -76,13 +72,14 @@ exports.deleteUser = async (req, res) => {
     try {
         const { id } = req.params
 
-        const query = `DELETE FROM users WHERE id = ${id}`
-
-        await db.sequelize.query(query)
+        await user.destroy({
+            where: {
+              id,
+            },
+          })
 
         res.send({
-            status: "Your account deleted",
-            data :{id},
+            status: "Your account deleted"
         })
     } catch (error) {
         console.log(error)

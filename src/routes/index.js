@@ -38,7 +38,7 @@ path.delete("/user/:id", deleteUser)
 path.post("/add-book", addBooks)
 path.get("/books", getBooks)
 path.get("/book/:id", getBook)
-path.patch("/update-book", updateBook)
+path.patch("/update-book/:id", updateBook)
 path.delete("/book/:id", deleteBook)
 
 

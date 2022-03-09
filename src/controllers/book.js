@@ -1,20 +1,14 @@
 // Import db connection and QueryTypes from sequelize
-const db = require("../database/connection")
-const { QueryTypes } = require("sequelize")
+const { book } = require("../../models")
 
 // Function addbooks for insert book data to database
 exports.addBooks = async (req, res) => {
     try {
-        const { title, publicationDate, pages, author, ISBN, about, bookFile } = req.body
-        const query = `INSERT INTO books (title, publicationDate, pages, author, ISBN, about, bookFile) 
-        VALUES ('${title}','${publicationDate}',${pages},'${author}',${ISBN},'${about}','${bookFile}')`
-
-        await db.sequelize.query(query)
+        await book.create(req.body)
 
         res.send({
             status: "You added a book",
             message: "Add book finished",
-            data : {book:{query}},
         })
     } catch (error) {
         console.log(error)
@@ -28,12 +22,12 @@ exports.addBooks = async (req, res) => {
 // Function getbooks for get all book data from database
 exports.getBooks = async (req, res) => {
     try {
-        const query = "SELECT * FROM books"
-        const select = await db.sequelize.query(query, { type: QueryTypes.SELECT })
+
+        const books = await book.findAll()
 
         res.send({
             status: "success",
-            data :{ books : select} ,
+            data :{ books} ,
         })
     } catch (error) {
         console.log(error)
@@ -49,14 +43,14 @@ exports.getBook = async (req, res) => {
     try {
         const { id } = req.params
 
-        const select = await db.sequelize.query(
-            `SELECT * FROM books WHERE id = ${id} `,
-            { type: QueryTypes.SELECT }
-        )
+        const Book = await book.findOne({ 
+            where: {
+            id,
+             }})
         
         res.send({
             status: "Success",
-            data : {book:{select}},
+            data : {Book},
         })
     } catch (error) {
         console.log(error)
@@ -71,24 +65,16 @@ exports.getBook = async (req, res) => {
 exports.updateBook = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const { title } = req.body;
-
-        const query = `UPDATE books 
-                        SET title = '${title}'
-                        WHERE id = ${id}`;
-
-        const select = await db.sequelize.query(
-            `SELECT * FROM books WHERE id = '${id}' `,
-            { type: QueryTypes.SELECT }
-        )
-
-        await db.sequelize.query(query);
+        
+        await book.update(req.body, {
+            where: {
+              id,
+            },
+          });
 
         res.send({
             status: "Success update book",
             message: `Update book id: ${id}`,
-            data: {book:select},
         });
     } catch (error) {
         console.log(error);
@@ -105,9 +91,11 @@ exports.deleteBook = async (req, res) => {
     try {
         const { id } = req.params
 
-        const query = `DELETE FROM books WHERE id = ${id}`
-
-        await db.sequelize.query(query)
+        await book.destroy({
+            where: {
+              id,
+            },
+          });
 
         res.send({
             status: "Book deleted",
