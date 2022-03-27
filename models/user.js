@@ -22,26 +22,20 @@ module.exports = (sequelize, DataTypes) => {
       user.hasMany(models.book, {
         as: "book",
         foreignKey: {
-          name: "idUser",
+          name: "idAdmin",
         },
       });
 
       //hasMany association to transaction model
       user.hasMany(models.transaction, {
-        as: "user",
+        as: "transaction",
         foreignKey: {
-          name: "idBuyer",
-        },
-      })
-      
-      user.hasMany(models.transaction, {
-        as: "admin",
-        foreignKey: {
-          name: "idSeller",
+          name: "idUser",
         },
       })
     }
   }
+
   user.init({
     email: DataTypes.STRING,
     password: DataTypes.STRING,

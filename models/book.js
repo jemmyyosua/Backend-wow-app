@@ -15,17 +15,18 @@ module.exports = (sequelize, DataTypes) => {
       book.belongsTo(models.user, {
         as: "user",
         foreignKey: {
-          name: "idUser",
+          name: "idAdmin",
         },
       });
 
-      book.hasMany(models.transaction, {
-        as: "transactions",
+      book.hasMany(models.userBook, {
+        as: "userBooks",
         foreignKey: {
           name: "idBook",
         },
       });
     }
+    
   }
   book.init({
     title: DataTypes.STRING,
@@ -34,7 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     author: DataTypes.STRING,
     ISBN: DataTypes.INTEGER,
     about: DataTypes.STRING,
-    bookFile: DataTypes.STRING
+    bookFile: DataTypes.STRING,
+    cover: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'book',

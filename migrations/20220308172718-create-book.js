@@ -29,7 +29,10 @@ module.exports = {
       bookFile: {
         type: Sequelize.STRING
       },
-      idUser: {
+      cover: {
+        type: Sequelize.STRING
+      },
+      idAdmin: {
         type: Sequelize.INTEGER,
         references: {
           model: "users",

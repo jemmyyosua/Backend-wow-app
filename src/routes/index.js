@@ -2,15 +2,18 @@ const express = require('express')
 const path = express.Router()
 
 const { auth } = require('../../middleware/authentication')
-const {uploadImage} = require('../../middleware/uploadImage')
+const {uploudBook, uploadTransaction} = require('../../middleware/uploadImage')
 
 // Controller User
 const {
     getUsers,
-    getUser,
+    checkAuth,
     login,
     register,
-    deleteUser
+    deleteUser,
+    getUser,
+    addList,
+    listBook
   } = require("../controllers/user")
 
 // Controller Book
@@ -35,21 +38,26 @@ const {
 path.post("/register", register)
 path.post("/login", login)
 path.get("/users", getUsers)
-path.get("/user", auth,getUser)
+path.get("/check-auth", auth, checkAuth)
+path.get("/user", auth, getUser)
 path.delete("/user/:id", deleteUser)
 
+//User Books
+path.post("/add-list", auth, addList)
+path.get("/list-book", auth, listBook)
+
 // Route Book
-path.post("/add-book", uploadImage("bookFile"), addBooks)
-path.get("/books", getBooks)
+path.post("/add-book", auth, uploudBook("cover", "bookFile"), addBooks)
+path.get("/books", auth, getBooks)
 path.get("/book/:id", auth, getBook)
-path.patch("/update-book/:id", uploadImage("bookFile"), updateBook)
-path.delete("/book/:id", deleteBook)
+path.patch("/update-book/:id", auth, uploudBook("cover", "bookFile"), updateBook)
+path.delete("/book/:id", auth, deleteBook)
 
 // Route Transaction
-path.post("/add-transaction", addTransactions)
-path.get("/transactions", getTransactions)
-path.get("/transaction/:id", getTransaction)
-path.patch("/update-transaction/:id", updateTransaction)
+path.post("/add-transaction", auth, uploadTransaction("transferProof"), addTransactions)
+path.get("/transactions", auth,getTransactions)
+path.get("/transaction/:id", auth, getTransaction)
+path.patch("/update-transaction/:id", auth, uploadTransaction("transferProof"), updateTransaction)
 
 // export module route
 module.exports = path

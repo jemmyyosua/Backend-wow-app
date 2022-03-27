@@ -1,4 +1,4 @@
-const {user, profile, book} = require('../../models')
+const {user, profile, transaction,userBook, book} = require('../../models')
 const Joi = require("joi")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
@@ -10,7 +10,6 @@ exports.register = async (req, res) => {
     fullName: Joi.string().max(30).required(),
     email: Joi.string().email().required(),
     password: Joi.string().max(16).required(),
-    role : Joi.string()
   })
 
   const { error } = schema.validate(req.body)
@@ -26,13 +25,21 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(15)
     const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
-    const newUser = await user.create({
+    const data = {
       fullName: req.body.fullName,
       email: req.body.email,
       password: hashedPassword,
-      role: req.body.role
-    })
+      role: "user"
+    }
 
+    const newUser = await user.create(data)
+
+    const trans = {
+      userStatus : "Not Active",
+      idUser : newUser.id
+    }
+    const userTransaction = await transaction.create(trans)
+    
     const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY);
     
     res.status(200).send({
@@ -40,6 +47,7 @@ exports.register = async (req, res) => {
       data: {
         fullName: newUser.fullName,
         email: newUser.email,
+        userTransaction,
         token
       },
     })
@@ -75,37 +83,13 @@ exports.login = async (req, res) => {
       where: {
         email: req.body.email,
       },
-      include: {
-        model: profile,
-        as: "profile",
-        attributes: {
-          exclude: ["createdAt", "updatedAt", "idUser"],
-        },
-      }, 
-    
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       }
     })
 
-    const findBooks = await user.findOne({
-      where: {
-        id : userExist.id
-      },
-      include: {
-        model: book,
-        as: "book",
-        attributes: {
-          exclude: ["id","createdAt", "updatedAt", "idUser"],
-        },
-      }, 
-      attributes: {
-        exclude: ["id","createdAt", "updatedAt"],
-      }
-    })
     // compare password between entered from client and from database
     const isValid = await bcrypt.compare(req.body.password, userExist.password)
-
 
     // check if not valid then return response with status 400 (bad request)
     if (!isValid) {
@@ -118,16 +102,15 @@ exports.login = async (req, res) => {
 
     // generate token
     // const TOKEN_KEY = "karina2021"
-    const token = jwt.sign({ id: user.id },  process.env.TOKEN_KEY)
+    const token = jwt.sign({ id: userExist.id },  process.env.TOKEN_KEY)
 
     res.status(200).send({
       status: "success",
       data: {
+      id: userExist.id,
       fullName : userExist.fullName,
       email : userExist.email,
       role : userExist.role,
-      profile : userExist.profile,
-      book : findBooks.book,
       token
       },
     })
@@ -170,53 +153,85 @@ exports.getUsers = async (req, res) => {
 }
 
 
-exports.getUser = async (req, res) => {
-    try {
-      const id = req.user.id
+exports.checkAuth = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    const dataUser = await user.findOne({
+      where: {
+        id,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "password"],
+      },
+    });
+
+    if (!dataUser) {
+      return res.status(404).send({
+        status: "failed",
+      });
+    }
   
-      const data = await user.findOne({
-        where: {
-          id,
+    res.send({
+      status: "success",
+      data: {
+        user: {
+          id: dataUser.id,
+          fullName: dataUser.fullName,
+          email: dataUser.email,
+          role: dataUser.role,
         },
-        include: {
-          model: profile,
-          as: "profile",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status({
+      status: "failed",
+      message: "Server Error",
+    });
+  }
+}
+
+exports.getUser = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    const data = await user.findOne({
+      where: {
+        id,
+      },
+      include: 
+        {
+          model: transaction,
+          as: "transaction",
           attributes: {
-            exclude: ["createdAt", "updatedAt", "idUser"],
+            exclude: ["createdAt", "updatedAt", "password", "role"],
           },
         },
-        attributes: {
-          exclude: ["password", "createdAt", "updatedAt"],
-        },
-      })
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "password"],
+      },
+    })
 
-      if (!data) {
-        return res.status(404).send({
-          status: "failed",
-        });
-      }  
   
-      res.send({
-        status: "success",
-        data: {
-          user: {
-            id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role
-          }
-        },
-      })
-    } catch (error) {
-      console.log(error)
-      res.send({
+    if (!data) {
+      return res.status(404).send({
         status: "failed",
-        message: "Server Error",
-      })
+      });
     }
+
+    res.send({
+      status: "success",
+      data,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status({
+      status: "failed",
+      message: "Server Error",
+    });
   }
-
-
+}
 
 exports.deleteUser = async (req, res) => {
     try {
@@ -238,4 +253,88 @@ exports.deleteUser = async (req, res) => {
             message: "Server Error",
         })
     }
+}
+
+
+//User Books
+exports.addList = async (req, res) => {
+  try {
+    let data = req.body;
+
+    data = {
+      ...data,
+      idUser: req.user.id,
+    };
+
+    await userBook.create(data);
+
+    res.send({
+      status: "success",
+      message: "Add transaction finished",
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "Server Error",
+    });
+  }
+}
+
+exports.listBook = async (req, res) => {
+  try {
+    const idUser = req.user.id;
+    let data = await userBook.findAll({
+      where: {
+        idUser,
+      },
+      attributes: {
+        exclude: ["updatedAt", "idUser", "idBook"],
+      },
+      include: [
+        {
+          model: book,
+          as: "book",
+          attributes: {
+            exclude: [
+              "createdAt",
+              "updatedAt",
+            ],
+          },
+        },
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "role"],
+          },
+        },
+      ],
+    });
+
+    console.log(data.cover)
+    data = JSON.parse(JSON.stringify(data));
+
+    data = data.map((item) => {
+      return {
+        ...item,
+        book: {
+          ...item.book,
+          cover: process.env.COVER_FILE + item.book.cover,
+          bookFile: process.env.BOOK_FILE + item.book.bookFile,
+        },
+      };
+    });
+
+    res.send({
+      status: "success",
+      data,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "Server Error",
+    });
+  }
 }

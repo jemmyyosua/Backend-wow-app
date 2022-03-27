@@ -4,15 +4,32 @@ const { book, user } = require("../../models")
 // Function addbooks for insert book data to database
 exports.addBooks = async (req, res) => {
     try {
-        const {...data} = req.body
-        await book.create({
-            ...data,
-            bookFile: req.file.filename,
-        })
+        const data = {
+          title : req.body.title,
+          publicationDate : req.body.publicationDate,
+          pages : req.body.pages,
+          about : req.body.about,
+          ISBN : req.body.ISBN,
+          author : req.body.author,
+          cover : req.files.cover[0].filename,
+          bookFile : req.files.bookFile[0].filename,
+          idAdmin : req.user.id,
+        }
+
+        const add = await book.create(data, {include: [
+          {
+            model: user,
+            as: "user",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "password"],
+            },
+          }]})
 
         res.send({
             status: "You added a book",
             message: "Add book finished",
+            cover: process.env.COVER_FILE + add.cover,
+            bookFile: process.env.BOOK_FILE + add.bookFile,
         })
     } catch (error) {
         console.log(error)
@@ -26,7 +43,7 @@ exports.addBooks = async (req, res) => {
 // Function getbooks for get all book data from database
 exports.getBooks = async (req, res) => {
     try {
-        let books = await book.findAll({
+        let data = await book.findAll({
             include: [
               {
                 model: user,
@@ -39,12 +56,16 @@ exports.getBooks = async (req, res) => {
             attributes: {
               exclude: ["createdAt", "updatedAt", "idUser"],
             },
-          });
-      
+          })
+          
+          data = JSON.parse(JSON.stringify(data))
+          data = data.map((item) => {
+            return { ...item, cover: process.env.COVER_FILE + item.cover };
+          })
 
         res.send({
             status: "success",
-            data :{ books} ,
+            data
         })
     } catch (error) {
         console.log(error)
@@ -60,7 +81,7 @@ exports.getBook = async (req, res) => {
     try {
         let { id } = req.params
 
-        const Book = await book.findOne({ 
+        let data = await book.findOne({ 
             where: {
             id,
              },
@@ -78,10 +99,17 @@ exports.getBook = async (req, res) => {
               },
             })
              
-        
+            data = JSON.parse(JSON.stringify(data));
+
+            data = {
+              ...data,
+              cover: process.env.COVER_FILE + data.cover,
+              bookFile: process.env.BOOK_FILE + data.bookFile
+            };
+             
         res.send({
             status: "Success",
-            data : {Book},
+            data
         })
     } catch (error) {
         console.log(error)
@@ -116,7 +144,7 @@ exports.updateBook = async (req, res) => {
         res.send({
             status: "Success update book",
             message: `Update book id: ${id}`,
-            bookFile: 'http://localhost:4000/uploads/' + file.bookFile
+            cover: 'http://localhost:4000/uploads/' + file.cover
         });
     } catch (error) {
         console.log(error);

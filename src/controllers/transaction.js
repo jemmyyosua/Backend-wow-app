@@ -4,11 +4,16 @@ const { transaction, user, book } = require("../../models")
 // Function addtransactions for insert transaction data to database
 exports.addTransactions = async (req, res) => {
     try {
-        await transaction.create(req.body)
+        const data = {
+            transferProof : req.file.filename,
+            idUser : req.user.id,
+        }
+        const add = await transaction.create(data)
 
         res.send({
-            status: "You added a transaction",
+            status: "success",
             message: "Add transaction finished",
+            transferProof: process.env.TRANSACTION_FILE + add.transferProof
         })
     } catch (error) {
         console.log(error)
@@ -22,12 +27,34 @@ exports.addTransactions = async (req, res) => {
 // Function gettransactions for get all transaction data from database
 exports.getTransactions = async (req, res) => {
     try {
+        let data = await transaction.findAll({
+            where : {
+                paymentStatus : ["Pending", "Approve", "Cancel"]
+            },
+            include: [
+              {
+                model: user,
+                as: "user",
+                attributes: {
+                  exclude: ["createdAt", "updatedAt", "password"],
+                }
+              },
+            ],
+            attributes: {
+              exclude: ["createdAt", "updatedAt"],
+            },
+          })
 
-        const transactions = await transaction.findAll()
+          data = JSON.parse(JSON.stringify(data))
+          data = data.map((item) => {
+            return { ...item, transferProof: item.transferProof };
+          })
+
+          console.log(data)
 
         res.send({
             status: "success",
-            data :{ transactions} ,
+            data
         })
     } catch (error) {
         console.log(error)
@@ -90,17 +117,32 @@ exports.getTransaction = async (req, res) => {
 // Function update transaction data from database
 exports.updateTransaction = async (req, res) => {
     try {
-        const { id } = req.params;
-        
-        await transaction.update(req.body, {
+        const { id } = req.params
+        const data = {
+            transferProof: req?.file?.filename,
+            paymentStatus: req?.body?.paymentStatus,
+            remainingActive: req?.body?.remainingActive,
+            userStatus: req?.body?.userStatus,
+            idUser : req?.user?.id,
+        }
+
+        await transaction.update(data ,{
             where: {
               id,
             },
-          });
+          })
 
         res.send({
-            status: "Success update transaction",
-            message: `Update book id: ${id}`,
+            status: "success",
+            message: `Update transaction id: ${id}`,
+            data: {
+                id,
+                data,
+                paymentStatus: req?.body?.paymentStatus,
+                remainingActive: req?.body?.remainingActive,
+                userStatus: req?.body?.userStatus,
+                transferProof: req?.file?.filename,
+              },
         });
     } catch (error) {
         console.log(error);
