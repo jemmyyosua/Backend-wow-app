@@ -283,13 +283,13 @@ exports.addList = async (req, res) => {
 
 exports.listBook = async (req, res) => {
   try {
-    const idUser = req.user.id;
+    const idUser = req.user.id
     let data = await userBook.findAll({
       where: {
         idUser,
       },
       attributes: {
-        exclude: ["updatedAt", "idUser", "idBook"],
+        exclude: ["updatedAt"],
       },
       include: [
         {
@@ -312,9 +312,7 @@ exports.listBook = async (req, res) => {
       ],
     });
 
-    console.log(data.cover)
-    data = JSON.parse(JSON.stringify(data));
-
+    data = JSON.parse(JSON.stringify(data))
     data = data.map((item) => {
       return {
         ...item,
@@ -326,9 +324,11 @@ exports.listBook = async (req, res) => {
       };
     });
 
+    console.log(data)
     res.send({
       status: "success",
-      data,
+      data
+
     });
   } catch (error) {
     console.log(error);

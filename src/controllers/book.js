@@ -124,9 +124,8 @@ exports.getBook = async (req, res) => {
 exports.updateBook = async (req, res) => {
     try {
         const { id } = req.params
-
     
-         await book.update({bookFile : req.file.filename},{
+         await book.update({
             where: {
               id,
             },

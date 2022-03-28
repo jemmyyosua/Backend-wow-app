@@ -13,7 +13,7 @@ const {
     deleteUser,
     getUser,
     addList,
-    listBook
+    listBook,
   } = require("../controllers/user")
 
 // Controller Book
@@ -30,7 +30,8 @@ const {
     getTransactions,
     getTransaction,
     addTransactions,
-    updateTransaction
+    updateTransaction,
+    setTrans
   } = require("../controllers/transaction")
 
 
@@ -56,8 +57,9 @@ path.delete("/book/:id", auth, deleteBook)
 // Route Transaction
 path.post("/add-transaction", auth, uploadTransaction("transferProof"), addTransactions)
 path.get("/transactions", auth,getTransactions)
-path.get("/transaction/:id", auth, getTransaction)
-path.patch("/update-transaction/:id", auth, uploadTransaction("transferProof"), updateTransaction)
+path.get("/transaction/:id", getTransaction)
 
+// Update Transactions
+path.patch("/update-transaction/:id" , auth , uploadTransaction("transferProof"), updateTransaction)
 // export module route
 module.exports = path

@@ -1,5 +1,6 @@
 // Import db connection and QueryTypes from sequelize
 const { transaction, user, book } = require("../../models")
+const { Op } = require('sequelize')
 
 // Function addtransactions for insert transaction data to database
 exports.addTransactions = async (req, res) => {
@@ -29,7 +30,7 @@ exports.getTransactions = async (req, res) => {
     try {
         let data = await transaction.findAll({
             where : {
-                paymentStatus : ["Pending", "Approve", "Cancel"]
+            paymentStatus : ["Pending", "Approved", "Cancel", ""]
             },
             include: [
               {
@@ -50,7 +51,7 @@ exports.getTransactions = async (req, res) => {
             return { ...item, transferProof: item.transferProof };
           })
 
-          console.log(data)
+        console.log(data)
 
         res.send({
             status: "success",
@@ -70,39 +71,21 @@ exports.getTransaction = async (req, res) => {
     try {
         const { id } = req.params
 
-        const transaction = await transaction.findOne({ 
+        let data = await transaction.findOne({ 
             where: {
             id,
-             }, attributes: {
-                exclude: ['createdAt', 'updatedAt', 'idBuyer', 'idSeller', 'idProduct']
-            },
-            include: [
-                {
-                    model: book,
-                    as: 'book',
-                    attributes: {
-                        exclude: ['createdAt', 'updatedAt', 'idUser',]
-                    }
-                },
-                {
-                    model: user,
-                    as: 'buyer',
-                    attributes: {
-                        exclude: ['createdAt', 'updatedAt', 'password', 'status']
-                    }
-                },
-                {
-                    model: user,
-                    as: 'seller',
-                    attributes: {
-                        exclude: ['createdAt', 'updatedAt', 'password', 'status']
-                    }
-                },
-            ]})
+             }})
+
+            data = JSON.parse(JSON.stringify(data))
+
+            data = {
+            ...data,
+            transferProof: process.env.TRANSACTION_FILE + data.transferProof,
+            }
         
         res.send({
-            status: "Success",
-            data : {transaction},
+            status: "success",
+            data
         })
     } catch (error) {
         console.log(error)
@@ -123,7 +106,6 @@ exports.updateTransaction = async (req, res) => {
             paymentStatus: req?.body?.paymentStatus,
             remainingActive: req?.body?.remainingActive,
             userStatus: req?.body?.userStatus,
-            idUser : req?.user?.id,
         }
 
         await transaction.update(data ,{
@@ -151,4 +133,4 @@ exports.updateTransaction = async (req, res) => {
             message: "Server Error",
         });
     }
-};
+}

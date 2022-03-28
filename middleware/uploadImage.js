@@ -46,11 +46,6 @@ exports.uploadTransaction = (imageFile) => {
       }
 
       // jika tidak ada file yang diupload
-      if (!req.file && !err) {
-        return res.status(400).send({
-          message: 'Please select file to upload'
-        })
-      }
 
       // jika size lebih
       if (err) {
