@@ -37,12 +37,12 @@ exports.getTransactions = async (req, res) => {
                 model: user,
                 as: "user",
                 attributes: {
-                  exclude: ["createdAt", "updatedAt", "password"],
+                  exclude: ["createdAt", "password"],
                 }
               },
             ],
             attributes: {
-              exclude: ["createdAt", "updatedAt"],
+              exclude: ["createdAt"],
             },
           })
 
