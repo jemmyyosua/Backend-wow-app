@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "wow": "npm start --prefix ../wow",
     "dev": "concurrently \"npm start\" \"npm run wow\""
   },
