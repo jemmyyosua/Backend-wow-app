@@ -14,12 +14,5 @@ exp.use(cors())
 exp.use('/wow-app', path)
 exp.use('/uploads', express.static('uploads'))
 
-exp.get('/', function (req, res) {
-  res.send({
-    message: 'Hello World',
-    CLIENT_URL: process.env.CLIENT_URL,
-  });
-});
-
 
 exp.listen(port , () => console.log(`Server Running on port ${port}`))
