@@ -5,7 +5,7 @@ exports.uploadTransaction = (imageFile) => {
   // code here
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "uploads/transaction")
+      cb(null, "uploads")
     },
     filename: function (req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, ""))
@@ -67,10 +67,10 @@ exports.uploudBook = (file1, file2) => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       if (file.fieldname == file1){
-        cb(null, "uploads/cover")
+        cb(null, "uploads")
       } 
       if (file.fieldname == file2) {
-        cb(null, "uploads/epub")
+        cb(null, "uploads")
       }
     },
     filename: function (req, file, cb) {

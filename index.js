@@ -5,7 +5,7 @@ const path = require('./src/routes')
 const exp = express()
 const cors = require('cors')
 
-const port = 4000
+const port = process.env.PORT || 5000
 
 exp.use(express.json())
 exp.use(cors())
