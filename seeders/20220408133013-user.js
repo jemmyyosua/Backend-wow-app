@@ -19,8 +19,8 @@ module.exports = {
           email: 'admin@mail.com',
           password:
             '$2b$15$woXM3Lsu7qM8m0HY8kZSSud6oGHrP/FHFW5NXQTJBU5Z0pwoERwm.', //12345
-          name: 'admin',
-          status: 'admin',
+          fullName: 'admin',
+          role: 'admin',
         },
       ],
       {}
