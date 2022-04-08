@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "wow": "npm start --prefix ../wow",
-    "build": "concurrently \"npm start\" \"npm run wow\""
+    "dev": "concurrently \"npm start\" \"npm run wow\""
   },
   "author": "",
   "license": "ISC",
