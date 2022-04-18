@@ -35,8 +35,8 @@ exports.addBooks = async (req, res) => {
         res.send({
             status: "You added a book",
             message: "Add book finished",
-            cover: process.env.COVER_FILE + add.cover,
-            bookFile: process.env.BOOK_FILE + add.bookFile,
+            cover: process.env.PATH_FILE + add.cover,
+            bookFile: process.env.PATH_FILE + add.bookFile,
         })
     } catch (error) {
         console.log(error)
@@ -67,7 +67,7 @@ exports.getBooks = async (req, res) => {
           
           data = JSON.parse(JSON.stringify(data))
           data = data.map((item) => {
-            return { ...item, cover: process.env.COVER_FILE + item.cover };
+            return { ...item, cover: process.env.PATH_FILE + item.cover };
           })
 
         res.send({
@@ -110,8 +110,8 @@ exports.getBook = async (req, res) => {
 
             data = {
               ...data,
-              cover: process.env.COVER_FILE + data.cover,
-              bookFile: process.env.BOOK_FILE + data.bookFile
+              cover: process.env.PATH_FILE + data.cover,
+              bookFile: process.env.PATH_FILE + data.bookFile
             };
              
         res.send({
@@ -150,7 +150,7 @@ exports.updateBook = async (req, res) => {
         res.send({
             status: "Success update book",
             message: `Update book id: ${id}`,
-            cover: 'http://localhost:4000/uploads/' + file.cover
+            cover: process.env.PATH_FILE + file.cover
         });
     } catch (error) {
         console.log(error);
