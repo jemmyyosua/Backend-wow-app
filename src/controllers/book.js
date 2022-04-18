@@ -1,9 +1,16 @@
 // Import db connection and QueryTypes from sequelize
 const { book, user } = require("../../models")
+const cloudinary = require('../utils/cloudinary')
 
 // Function addbooks for insert book data to database
 exports.addBooks = async (req, res) => {
     try {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'wow-app',
+        use_filename: true,
+        unique_filename: true,
+      })
+
         const data = {
           title : req.body.title,
           publicationDate : req.body.publicationDate,
@@ -11,8 +18,8 @@ exports.addBooks = async (req, res) => {
           about : req.body.about,
           ISBN : req.body.ISBN,
           author : req.body.author,
-          cover : req.files.cover[0].filename,
-          bookFile : req.files.bookFile[0].filename,
+          cover : result.public_id,
+          bookFile : result.public_id,
           idAdmin : req.user.id,
         }
 
